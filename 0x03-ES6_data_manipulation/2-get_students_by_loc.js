@@ -1,4 +1,4 @@
-export default function(getStudentsByLocation, city) {
+export default function getStudentsByLocation(getListStudents, city) {
   const Arr = [
     { id: 1, firstName: 'Guillaume', location: 'San Francisco' },
     { id: 2, firstName: 'James', location: 'Columbia' },
