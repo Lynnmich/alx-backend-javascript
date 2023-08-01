@@ -4,5 +4,5 @@ export default function getStudentIdsSum(getListStudents) {
     { id: 2, firstName: 'James', location: 'Columbia' },
     { id: 5, firstName: 'Serena', location: 'San Francisco' },
   ];
-    return students.reduce((sum, student) => sum + student.id, 0);
+  return Arr.reduce(((reducer, Arr) => reducer + Arr.id), 0);
 }
