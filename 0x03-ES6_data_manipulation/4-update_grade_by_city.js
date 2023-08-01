@@ -6,4 +6,4 @@ export default function updateStudentGradeByCity(studentList, city, newGrades) {
       grade: matchedGrade ? matchedGrade.grade : "N/A",
     };
   }).filter((student) => student.location === city);
-};
+}
