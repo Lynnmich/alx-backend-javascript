@@ -1,68 +1,70 @@
 const http = require('http');
 const fs = require('fs');
 
-const path = process.argv[2];
+const hostname = '127.0.0.1';
 const port = 1245;
 
-const countStudents = (path) => {
-  const promise = (res, rej) => {
-    fs.readFile(path, 'utf8', (err, resData) => {
-      if (!err) {
-        const printOut = [];
-        let printItem; // item to printed
-        const data = resData.toString().split('\n');
-        let students = data.filter((item) => item);
-        students = students.map((item) => item.split(','));
-        printItem = `Number of students: ${students.length - 1}`;
-        console.log(printItem);
-        printOut.push(printItem);
-
-        const fields = {};
-        for (const student in students) {
-          if (student !== 0) {
-            if (!fields[students[student][3]]) {
-              fields[students[student][3]] = [];
+function countStudents(fileName) {
+  const students = {};
+  const fields = {};
+  let length = 0;
+  return new Promise((resolve, reject) => {
+    readFile(fileName, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        let output = '';
+        const lines = data.toString().split('\n');
+        for (let i = 0; i < lines.length; i += 1) {
+          if (lines[i]) {
+            length += 1;
+            const field = lines[i].toString().split(',');
+            if (Object.prototype.hasOwnProperty.call(students, field[3])) {
+              students[field[3]].push(field[0]);
+            } else {
+              students[field[3]] = [field[0]];
             }
-            fields[students[student][3]].push(students[student][0]);
+            if (Object.prototype.hasOwnProperty.call(fields, field[3])) {
+              fields[field[3]] += 1;
+            } else {
+              fields[field[3]] = 1;
+            }
           }
         }
-        delete fields.field;
-        for (const key of Object.keys(fields)) {
-          printItem = `Number of students in ${key}: ${
-            fields[key].length}. List: ${fields[key].join(', ')}`;
-          console.log(printItem);
-          printOut.push(printItem);
+        const l = length - 1;
+        output += `Number of students: ${l}\n`;
+        for (const [key, value] of Object.entries(fields)) {
+          if (key !== 'field') {
+            output += `Number of students in ${key}: ${value}. `;
+            output += `List: ${students[key].join(', ')}\n`;
+          }
         }
-        res(printOut);
-      } else {
-        rej(new Error('Cannot load the database'));
+        resolve(output);
       }
     });
-  };
-
-  return new Promise(promise);
-};
+  });
+}
 
 const app = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
   if (req.url === '/') {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Hello Holberton School!');
+    res.write('Hello Holberton School!');
+    res.end();
   }
   if (req.url === '/students') {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    countStudents(path)
-      .then((data) => {
-        res.end(`This is the list of our students\n${data.join('\n')}`);
-      })
-      .catch((error) => {
-        res.end(error);
-      });
+    res.write('This is the list of our students\n');
+    countStudents(process.argv[2].toString()).then((output) => {
+      const outString = output.slice(0, -1);
+      res.end(outString);
+    }).catch(() => {
+      res.statusCode = 404;
+      res.end('Cannot load the database');
+    });
   }
 });
 
-app.listen(port, () => {
+app.listen(port, hostname, () => {
 });
 
 module.exports = app;
